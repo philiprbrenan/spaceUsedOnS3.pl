@@ -18,6 +18,3 @@ keyword to list buckets and objects associated with the credentials.
 
 The --buckets selection regular expression is applied in a case insensitive
 manner.
-
-
-See the wiki: https://github.com/philiprbrenan/spaceUsedOnS3.pl/wiki for details
