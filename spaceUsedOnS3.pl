@@ -7,16 +7,21 @@
 =pod
 
  Parameters:   Description:
+ --buckets     Optional regular expression to choose the buckets to be summed
  --profile     Optional aws cli --profile keyword to choose the account to sum
 
  Examples:
 
  perl spaceUsedOnS3.pl
- perl spaceUsedOnS3.pl --profile abc
+ perl spaceUsedOnS3.pl --profile abc --buckets "\Ap"
 
  Notes:
- You will need IAM permissions for the credential indentified by the --profile
- keyword to list buckets and list objects associated with the credentials.
+
+ You will need IAM permissions for the credentials identified by the --profile
+ keyword to list buckets and objects associated with the credentials.
+
+ The buckets selection regular expression is applied in a case insensitive
+ manner.
 
 =cut
 
@@ -26,9 +31,10 @@ use strict;
 use Data::Table::Text qw(:all);
 use Getopt::Long;
 
-my $profile;
+my ($profile, $bucketr);
 GetOptions
  ('profile=s' =>\$profile,
+  'buckets=s' =>\$bucketr,
  );
 my $Profile = $profile ? "--profile $profile" : '';                             # Add profile keyword
 
@@ -41,7 +47,8 @@ my $sizeTotal;
 my @results;
 
 for my $bucket(@buckets)                                                        # Each bucket
- {my $c = "aws s3 ls s3://$bucket $Profile --recursive --human-readable --summarize";
+ {next if $bucketr and $bucket !~ /$bucketr/i;                                  # Choose buckets
+  my $c = "aws s3 ls s3://$bucket $Profile --recursive --human-readable --summarize";
   my $r = qx($c);
   my ($objects)      = $r =~ m/Total Objects:\s+(\d+)/;
   my ($size, $scale) = $r =~ m/Total Size:\s([0-9.]+)\s+(\w+)/;
@@ -57,7 +64,7 @@ for my $bucket(@buckets)                                                        
   $sizeTotal    += $size;
  }
 
-push @results, ["Total size ",   $sizeTotal],
+push @results, ["Total size ",   $sizeTotal],                                   # Totals
                ["Total objects", '',                 $objectsTotal],
                ["Scale",         '1501209006003000', '9006003000'];
 
