@@ -10,7 +10,7 @@ use strict;
 use Data::Table::Text qw(:all);
 use Data::Dump qw(dump);
 
-my $buckets = qx(aws s3 ls  --recursive --human-readable --summarize);
+my $buckets = qx(aws s3 ls  --recursive --human-readable --summarize);          # Buckets
 my @buckets = map {(split /\s+/, $_)[2]} split /\n/, $buckets;
 pop @buckets for 1..2;                                                          # Remove extraneous entries
 
