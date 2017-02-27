@@ -4,12 +4,35 @@
 # Philip R Brenan at gmail dot com, Appa Apps Ltd, 2017
 #-------------------------------------------------------------------------------
 
+=pod
+
+ Parameters:   Description:
+ --profile     Optional aws cli --profile keyword to choose the account to sum
+
+ Examples:
+
+ perl spaceUsedOnS3.pl
+ perl spaceUsedOnS3.pl --profile abc
+
+ Notes:
+ You will need IAM permissions for the credential indentified by the --profile
+ keyword to list buckets and list objects associated with the credentials.
+
+=cut
+
 require v5.16;
 use warnings FATAL => qw(all);
 use strict;
 use Data::Table::Text qw(:all);
+use Getopt::Long;
 
-my $buckets = qx(aws s3 ls);                                                    # Buckets
+my $profile;
+GetOptions
+ ('profile=s' =>\$profile,
+ );
+my $Profile = $profile ? "--profile $profile" : '';                             # Add profile keyword
+
+my $buckets = qx(aws s3 ls $Profile);                                           # Buckets
 my @buckets = map {(split /\s+/, $_)[2]} split /\n/, $buckets;
 pop @buckets for 1..2;                                                          # Remove extraneous entries
 
@@ -18,7 +41,7 @@ my $sizeTotal;
 my @results;
 
 for my $bucket(@buckets)                                                        # Each bucket
- {my $c = "aws s3 ls s3://$bucket --recursive --human-readable --summarize";
+ {my $c = "aws s3 ls s3://$bucket $Profile --recursive --human-readable --summarize";
   my $r = qx($c);
   my ($objects)      = $r =~ m/Total Objects:\s+(\d+)/;
   my ($size, $scale) = $r =~ m/Total Size:\s([0-9.]+)\s+(\w+)/;
