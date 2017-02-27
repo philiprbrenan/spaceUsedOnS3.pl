@@ -24,15 +24,20 @@ for my $bucket(@buckets)                                                        
   my $r = qx($c);
   my ($objects)      = $r =~ m/Total Objects:\s+(\d+)/;
   my ($size, $scale) = $r =~ m/Total Size:\s([0-9.]+)\s+(\w+)/;
-  $size *= 1e3 if $scale  =~ m/KiB/;
-  $size *= 1e6 if $scale  =~ m/MiB/;
+
+  $size *= (1024**1) if $scale =~ m/KiB/;
+  $size *= (1024**2) if $scale =~ m/MiB/;
+  $size *= (1024**3) if $scale =~ m/GiB/;
+  $size *= (1024**4) if $scale =~ m/TiB/;
+  $size *= (1024**5) if $scale =~ m/PiB/;
+  $size  = int($size);
   push @results, [$bucket, $size, $objects];
   $objectsTotal += $objects;
   $sizeTotal    += $size;
  }
 
 push @results, ["Total size ",   $sizeTotal],
-               ["Total objects", '',           $objectsTotal],
-               ["Scale",         '9006003000', '9006003000'];
+               ["Total objects", '',                 $objectsTotal],
+               ["Scale",         '1501209006003000', '9006003000'];
 
 say STDERR formatTableBasic([[qw(Bucket Size Count)], @results]);               # Results
